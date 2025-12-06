@@ -2,6 +2,7 @@
   "name": "kirei",
   "type": "module",
   "version": "0.0.0",
+  "description": "Clean your computer with Kirei",
   "exports": {
     ".": "./dist/index.mjs"
   },
@@ -24,7 +25,7 @@
   },
   "dependencies": {
     "ansis": "^4.2.0",
-    "cac": "^6.7.14",
+    "citty": "^0.1.6",
     "consola": "^3.4.2",
     "get-port-please": "^3.2.0",
     "nuxt": "^4.2.1",

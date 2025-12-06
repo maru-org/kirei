@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   css: [
   ],
   nitro: {
-    preset: isProd ? 'static' : undefined,
+    preset: isProd ? 'node-server' : undefined,
     output: isProd ? { dir: '../dist' } : undefined,
     sourceMap: false,
   },
