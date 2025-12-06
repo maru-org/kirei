@@ -24,23 +24,17 @@
   },
   "dependencies": {
     "ansis": "^4.2.0",
-    "birpc": "^3.0.0",
     "cac": "^6.7.14",
     "consola": "^3.4.2",
-    "flatted": "^3.3.3",
     "get-port-please": "^3.2.0",
-    "h3": "2.0.1-rc.5",
-    "mrmime": "^2.0.1",
     "nuxt": "^4.2.1",
     "open": "^11.0.0",
     "vue": "^3.5.25",
-    "vue-router": "^4.6.3",
-    "ws": "^8.18.3"
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.4.2",
     "@types/node": "^24.10.1",
-    "@types/ws": "^8.18.1",
     "eslint": "^9.39.1",
     "unbuild": "^3.6.1"
   }
