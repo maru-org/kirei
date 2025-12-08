@@ -8,6 +8,7 @@ import open from 'open'
 import { description, name, version } from '../../package.json'
 import { serverDir } from '../dirs'
 import { MARK_GIT } from './constants'
+import { runScannerAction } from './scanner'
 
 const main = defineCommand({
   meta: {
@@ -16,6 +17,7 @@ const main = defineCommand({
     description,
   },
   args: {
+    // --- Server options ---
     host: {
       type: 'string',
       description: 'Host to listen on',
@@ -31,6 +33,25 @@ const main = defineCommand({
       description: 'Open browser on start',
       default: true,
     },
+
+    // --- Scanner options ---
+    scan: {
+      type: 'boolean',
+      description: 'Run junk scan',
+      default: false,
+    },
+
+    // --- Cleaning options ---
+    clean: {
+      type: 'boolean',
+      description: 'Execute cleanup on found items',
+      default: false,
+    },
+    mode: {
+      type: 'string',
+      description: 'Deletion mode: "soft" (trash) or "hard" (rm -rf)',
+      default: 'soft',
+    },
   },
   async run({ args }) {
     const host = args.host
@@ -41,6 +62,13 @@ const main = defineCommand({
     })
 
     console.log(c.green`${MARK_GIT} Starting Kirei at`, c.green(`http://${host === '127.0.0.1' ? 'localhost' : host}:${port}`), '\n')
+
+    // Delegate scanning logic to the scanner module
+    await runScannerAction({
+      scan: args.scan,
+      clean: args.clean,
+      mode: args.mode,
+    })
 
     const serverEntry = join(serverDir, 'index.mjs')
 
