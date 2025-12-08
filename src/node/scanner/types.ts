@@ -76,7 +76,6 @@ export interface IScanner {
  */
 export interface ScanOptions {
   scan: boolean
-  clean: boolean
   mode: string
 
   // CLI inputs are usually strings, we will parse them later

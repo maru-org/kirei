@@ -42,11 +42,6 @@ const main = defineCommand({
     },
 
     // --- Cleaning options ---
-    clean: {
-      type: 'boolean',
-      description: 'Execute cleanup on found items',
-      default: false,
-    },
     mode: {
       type: 'string',
       description: 'Deletion mode: "soft" (trash) or "hard" (rm -rf)',
@@ -66,7 +61,6 @@ const main = defineCommand({
     // Delegate scanning logic to the scanner module
     await runScannerAction({
       scan: args.scan,
-      clean: args.clean,
       mode: args.mode,
     })
 
