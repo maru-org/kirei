@@ -30,8 +30,12 @@ export class UserCacheScanner implements IScanner {
           const fullPath = join(cacheRoot, dirent.name)
 
           // Execute size calculation and stat (for time) in parallel
+          // 为微信等大型应用设置更低的扫描深度
+          const isLargeApp = ['com.tencent.xinWeChat', 'com.tencent.wechat'].includes(dirent.name)
+          const scanDepth = isLargeApp ? 1 : 3
+          
           const [size, stats] = await Promise.all([
-            getPathSize(fullPath),
+            getPathSize(fullPath, scanDepth),
             stat(fullPath),
           ])
 

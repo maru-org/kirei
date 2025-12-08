@@ -1,6 +1,9 @@
 import type { ScanResult } from '../types'
 import { SortStrategy } from '../types'
 
+// 重新导出 SortStrategy 以便其他模块使用
+export { SortStrategy }
+
 /**
  * Type definition for a comparison function.
  */
