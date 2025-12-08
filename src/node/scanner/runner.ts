@@ -22,18 +22,19 @@ export async function runScannerAction(options: ScanOptions): Promise<void> {
   const browser = new ScannerBrowser(scannerManager)
 
   p.log.message(c.dim`Entering interactive browser...`)
+
   await new Promise(r => setTimeout(r, 500))
 
-  const itemsToDelete: any[] = [] // Define outside loop
+  // Define outside to prevent scope issues, though essentially re-assigned inside
+  // Use 'let' as it is reassigned in the loop logic flow conceptually
 
-  // Loop until user confirms deletion or exits
+  let itemsToDelete: any[] = []
+
   while (true) {
-    // 1. Enter TUI Mode
-    // The process will wait here until user presses 's'
-    const itemsToDelete = await browser.start()
+    itemsToDelete = await browser.start()
 
-    // 2. TUI Exited -> Clack Mode
-    console.clear() // Remove TUI artifacts
+    // eslint-disable-next-line no-console
+    console.clear()
     p.intro(c.cyan`🗑️ Cleanup Confirmation`)
 
     if (itemsToDelete.length === 0) {
@@ -41,15 +42,13 @@ export async function runScannerAction(options: ScanOptions): Promise<void> {
       process.exit(0)
     }
 
-    // 3. Show Summary
-    const totalSize = itemsToDelete.reduce((acc, i) => acc + i.size, 0)
+    const totalSize = itemsToDelete.reduce((acc: number, i: any) => acc + i.size, 0)
     const listStr = itemsToDelete
-      .map(i => `${c.red('×')} ${i.name} ${c.dim(formatSize(i.size))}`)
+      .map((i: any) => `${c.red('x')} ${i.name} ${c.dim(formatSize(i.size))}`)
       .join('\n')
 
     p.note(listStr, `Selected ${itemsToDelete.length} items (${formatSize(totalSize)})`)
 
-    // 4. Confirm Logic
     const confirm = await p.confirm({
       message: c.bold`Permanently delete these items?`,
       initialValue: false,

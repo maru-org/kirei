@@ -21,20 +21,16 @@ export class ScannerBrowser {
   private manager: ScannerManager
   private rootNodes: UINode[] = []
 
-  // Navigation State
   private currentList: UINode[] = []
   private cursorIndex = 0
   private breadcrumbs: UINode[] = []
 
-  // Selection State (Persists across re-starts if instance is kept alive)
   private selectedPaths = new Set<string>()
   private totalSelectedSize = 0
 
-  // Search State
   private isSearching = false
   private searchQuery = ''
 
-  // UI State
   private loading = false
   private statusMessage = ''
 
@@ -61,7 +57,6 @@ export class ScannerBrowser {
     if (!this.searchQuery)
       return this.currentList
 
-    // Filter logic: Exclude ".." during search to reduce noise
     return this.currentList.filter((node) => {
       if (node.isParentDir)
         return false
@@ -69,25 +64,17 @@ export class ScannerBrowser {
     })
   }
 
-  /**
-   * Start or Resume the interactive browser loop.
-   */
   async start(): Promise<ScanResult[]> {
-    // After Clack finishes, stdin might be paused, causing the Node process to exit
-    // because the event loop is empty. Resuming it keeps the process alive.
     process.stdin.resume()
-
-    // Setup input stream
     readline.emitKeypressEvents(process.stdin)
     if (process.stdin.isTTY)
       process.stdin.setRawMode(true)
-    process.stdout.write('\x1B[?25l') // Hide cursor
+    process.stdout.write('\x1B[?25l')
 
     this.render()
 
     return new Promise((resolve) => {
       const handleKey = async (_str: string, key: readline.Key) => {
-        // 1. Global Exit (Ctrl+C)
         if (key.ctrl && key.name === 'c') {
           this.cleanup(handleKey)
           process.exit(0)
@@ -96,9 +83,6 @@ export class ScannerBrowser {
         if (this.loading)
           return
 
-        // ----------------------
-        // SEARCH MODE HANDLING
-        // ----------------------
         if (this.isSearching) {
           if (key.name === 'escape') {
             this.exitSearchMode()
@@ -108,7 +92,6 @@ export class ScannerBrowser {
             this.cursorIndex = 0
           }
           else if (key.name === 'return' || key.name === 'enter') {
-            // Enter on a search result -> Drill down
             await this.handleEnter()
           }
           else if (key.name === 'up' || key.name === 'down') {
@@ -117,42 +100,32 @@ export class ScannerBrowser {
           else if (key.name === 'space') {
             this.toggleSelection()
           }
-          // Capture characters for search query
+          // Regex for allowed chars
           else if (key.sequence && key.sequence.length === 1) {
-            // Basic regex to allow filenames chars
-            if (/^[a-zA-Z0-9\.\-\_\/@\#\$\%\^\&\(\)\[\]\{\}\s]$/.test(key.sequence)) {
+            if (/^[a-zA-Z0-9.\-_/@#$%^&()[\]{}\s]$/.test(key.sequence)) {
               this.searchQuery += key.sequence
               this.cursorIndex = 0
             }
           }
         }
-        // ----------------------
-        // NORMAL NAVIGATION MODE
-        // ----------------------
         else {
           switch (key.name) {
             case 'up':
             case 'down':
               this.handleNavigation(key.name)
               break
-
             case 'return':
             case 'enter':
               await this.handleEnter()
               break
-
             case 'space':
               this.toggleSelection()
               break
-
-            // 'f' key triggers Search Mode
             case 'f':
               this.isSearching = true
               this.searchQuery = ''
               this.cursorIndex = 0
               break
-
-            // 's' key Submits selection and returns
             case 's':
               this.cleanup(handleKey)
               resolve(this.getSelectedItems())
@@ -189,13 +162,11 @@ export class ScannerBrowser {
     if (!node)
       return
 
-    // Go Back
     if (node.isParentDir) {
       this.handleGoBack()
       return
     }
 
-    // Lazy Load Category
     if (node.isCategory && node.scanner && !node.loaded) {
       this.loading = true
       this.render()
@@ -224,16 +195,17 @@ export class ScannerBrowser {
       this.loading = false
     }
 
-    // Enter Directory
     if (node.children && node.children.length > 0) {
-      // Clear search if we are diving deeper to avoid confusion
       if (this.isSearching)
         this.exitSearchMode()
 
-      // Check for empty dir
       if (node.children.length === 1 && node.children[0].isParentDir) {
         this.statusMessage = c.yellow(' (Empty directory)')
-        setTimeout(() => { this.statusMessage = ''; this.render() }, 1000)
+        // Fix: Split into block to satisfy max-statements-per-line
+        setTimeout(() => {
+          this.statusMessage = ''
+          this.render()
+        }, 1000)
         return
       }
 
@@ -297,14 +269,14 @@ export class ScannerBrowser {
     return allItems
   }
 
+  /* eslint-disable no-console */
   private render() {
     process.stdout.write('\x1B[2J\x1B[0f')
 
     console.log(c.gray('│'))
     console.log(`${c.gray('◇')}  ${c.bold('File Explorer')}`)
-    // Updated Help Text
     console.log(`${c.gray('│')}  ${c.dim('Nav: ↑/↓/Enter | Search: "f" | Select: Space')}`)
-    console.log(`${c.gray('│')}  ${c.green.bold('Press "s" to Review & Delete')} `)
+    console.log(`${c.gray('│')}  ${c.green.bold('Press "s" to Submit Selection')} `)
     console.log(c.gray('│'))
 
     if (this.loading) {
@@ -381,6 +353,7 @@ export class ScannerBrowser {
       console.log(`   ${c.green('Selected:')} ${this.selectedPaths.size} items (${c.yellow(this.formatSize(this.totalSelectedSize))})`)
     }
   }
+  /* eslint-enable no-console */
 
   private cleanup(listener: (str: string, key: readline.Key) => void) {
     process.stdin.removeListener('keypress', listener)
